@@ -1,0 +1,205 @@
+const socket = io();
+
+let currentUser  = null;
+let selectedCharacter = null;
+let selectedSkate = null;
+
+const loginScreen = document.getElementById('loginScreen');
+const menuScreen = document.getElementById('menuScreen');
+const characterScreen = document.getElementById('characterScreen');
+const gameScreen = document.getElementById('gameScreen');
+const settingsScreen = document.getElementById('settingsScreen');
+
+const loginBtn = document.getElementById('loginBtn');
+const loginMessage = document.getElementById('loginMessage');
+
+const startGameBtn = document.getElementById('startGameBtn');
+const spinBtn = document.getElementById('spinBtn');
+const spinResult = document.getElementById('spinResult');
+const settingsBtn = document.getElementById('settingsBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+
+const backToMenuBtn = document.getElementById('backToMenuBtn');
+const backFromSettingsBtn = document.getElementById('backFromSettingsBtn');
+
+const confirmSelectionBtn = document.getElementById('confirmSelectionBtn');
+
+const charButtons = document.querySelectorAll('.charBtn');
+const skateButtons = document.querySelectorAll('.skateBtn');
+
+function showScreen(screen) {
+  [loginScreen, menuScreen, characterScreen, gameScreen, settingsScreen].forEach(s => s.classList.remove('active'));
+  screen.classList.add('active');
+}
+
+// Login / Register
+loginBtn.onclick = async () => {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  if (!username || !password) {
+    loginMessage.textContent = 'Username dan password harus diisi';
+    return;
+  }
+  try {
+    const res = await fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.success) {
+      currentUser  = username;
+      loginMessage.textContent = data.message;
+      setTimeout(() => {
+        showScreen(menuScreen);
+      }, 1000);
+    } else {
+      loginMessage.textContent = data.error || 'Login gagal';
+    }
+  } catch (e) {
+    loginMessage.textContent = 'Error koneksi ke server';
+  }
+};
+
+// Logout
+logoutBtn.onclick = () => {
+  currentUser  = null;
+  selectedCharacter = null;
+  selectedSkate = null;
+  showScreen(loginScreen);
+};
+
+// Spin Harian (simulasi)
+spinBtn.onclick = () => {
+  const prizes = ['10 Coins', 'New Skateboard', 'Extra Spin', 'Nothing', '50 Coins'];
+  const prize = prizes[Math.floor(Math.random() * prizes.length)];
+  spinResult.textContent = `Kamu mendapatkan: ${prize}`;
+};
+
+// Settings
+settingsBtn.onclick = () => {
+  showScreen(settingsScreen);
+};
+
+backFromSettingsBtn.onclick = () => {
+  showScreen(menuScreen);
+};
+
+// Start Game -> Pilih karakter
+startGameBtn.onclick = () => {
+  showScreen(characterScreen);
+};
+
+// Pilih karakter
+charButtons.forEach(btn => {
+  btn.onclick = () => {
+    charButtons.forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedCharacter = btn.dataset.char;
+  };
+});
+
+// Pilih skateboard
+skateButtons.forEach(btn => {
+  btn.onclick = () => {
+    skateButtons.forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedSkate = btn.dataset.skate;
+  };
+});
+
+// Konfirmasi pilihan karakter dan skate
+confirmSelectionBtn.onclick = () => {
+  if (!selectedCharacter || !selectedSkate) {
+    alert('Pilih karakter dan skateboard terlebih dahulu!');
+    return;
+  }
+  showScreen(gameScreen);
+  startGame();
+};
+
+// Kembali ke menu dari game
+backToMenuBtn.onclick = () => {
+  stopGame();
+  showScreen(menuScreen);
+};
+
+// --- Game 3D dengan Three.js ---
+
+let scene, camera, renderer, playerMesh, animationId;
+
+function startGame() {
+  const container = document.getElementById('gameContainer');
+
+  // Setup scene
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87ceeb); // langit biru
+
+  // Camera
+  camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+  camera.position.set(0, 5, 10);
+
+  // Renderer
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  container.innerHTML = '';
+  container.appendChild(renderer.domElement);
+
+  // Cahaya
+  const light = new THREE.DirectionalLight(0xffffff, 1);
+  light.position.set(5, 10, 7);
+  scene.add(light);
+
+  // Lantai
+  const floorGeometry = new THREE.PlaneGeometry(50, 50);
+  const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x228B22 });
+  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+  floor.rotation.x = -Math.PI / 2;
+  scene.add(floor);
+
+  // Player (simple box mewakili karakter + skateboard)
+  const geometry = new THREE.BoxGeometry(1, 1, 2);
+  const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+  playerMesh = new THREE.Mesh(geometry, material);
+  playerMesh.position.y = 0.5;
+  scene.add(playerMesh);
+
+  // Kirim join game ke server
+  socket.emit('joinGame', { username: currentUser , character: selectedCharacter, skate: selectedSkate });
+
+  // Mulai animasi
+  animate();
+}
+
+function animate() {
+  animationId = requestAnimationFrame(animate);
+
+  // Contoh animasi sederhana: putar player
+  playerMesh.rotation.y += 0.01;
+
+  renderer.render(scene, camera);
+}
+
+function stopGame() {
+  cancelAnimationFrame(animationId);
+  const container = document.getElementById('gameContainer');
+  container.innerHTML = '';
+  scene = null;
+  camera = null;
+  renderer = null;
+  playerMesh = null;
+}
+
+// --- Socket.io event handling (contoh) ---
+
+socket.on('playerJoined', (data) => {
+  console.log('Player joined:', data);
+});
+
+socket.on('playerMoved', (data) => {
+  // Update posisi player lain (belum diimplementasi)
+});
+
+socket.on('playerLeft', (id) => {
+  console.log('Player left:', id);
+});

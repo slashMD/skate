@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Skateboard 3D Online</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="loginScreen" class="screen active">
+    <h2>Login / Register</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button id="loginBtn">Login / Register</button>
+    <p id="loginMessage"></p>
+  </div>
+
+  <div id="menuScreen" class="screen">
+    <h2>Menu Utama</h2>
+    <button id="startGameBtn">Mulai Game</button>
+    <button id="spinBtn">Spin Harian</button>
+    <button id="settingsBtn">Settings</button>
+    <button id="logoutBtn">Logout</button>
+    <p id="spinResult"></p>
+  </div>
+
+  <div id="characterScreen" class="screen">
+    <h2>Pilih Karakter dan Skateboard</h2>
+    <div id="characters">
+      <button class="charBtn" data-char="Skater1">Skater 1</button>
+      <button class="charBtn" data-char="Skater2">Skater 2</button>
+      <button class="charBtn" data-char="Skater3">Skater 3</button>
+    </div>
+    <div id="skates">
+      <button class="skateBtn" data-skate="Skate1">Skateboard 1</button>
+      <button class="skateBtn" data-skate="Skate2">Skateboard 2</button>
+      <button class="skateBtn" data-skate="Skate3">Skateboard 3</button>
+    </div>
+    <button id="confirmSelectionBtn">Konfirmasi</button>
+  </div>
+
+  <div id="gameScreen" class="screen">
+    <h2>Game Skateboard 3D</h2>
+    <div id="gameContainer"></div>
+    <button id="backToMenuBtn">Kembali ke Menu</button>
+  </div>
+
+  <div id="settingsScreen" class="screen">
+    <h2>Settings</h2>
+    <label>
+      Volume:
+      <input type="range" id="volumeSlider" min="0" max="100" value="50" />
+    </label>
+    <button id="backFromSettingsBtn">Kembali</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #222;
+  color: #eee;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.screen.active {
+  display: flex;
+}
+
+#gameContainer {
+  width: 800px;
+  height: 600px;
+  background: #000;
+  border: 2px solid #555;
+}
+
+button {
+  padding: 10px 20px;
+  background: #444;
+  border: none;
+  color: #eee;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: #666;
+}
+
+input[type="text"], input[type="password"] {
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  width: 200px;
+}
+
+#characters, #skates {
+  display: flex;
+  gap: 10px;
+}
+
+.charBtn, .skateBtn {
+  background: #333;
+  border: 2px solid #555;
+}
+
+.charBtn.selected, .skateBtn.selected {
+  border-color: #0f0;
+}
